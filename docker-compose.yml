@@ -1,0 +1,43 @@
+services:
+  # Database
+  db:
+    image: mysql:latest
+    container_name: specchio-db
+    restart: always
+    environment:
+      # mysql base variables
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: specchio_db
+      MYSQL_USER: specchio_user
+      MYSQL_PASSWORD: specchio_password
+    ports:
+      - "3306:3306"
+    volumes:
+      # map local storage to sql container for data persistance
+      - ./mysql_storage:/var/lib/mysql:z
+      # init files for sql db should be mounted here to run them on first startup
+      - ./mysql:/docker-entrypoint-initdb.d:z
+    networks:
+      - specchio-network
+
+  # Specchio Application
+  webapp:
+    image: specchio-webapp:0.1.2  # should move to :latest
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+      - "4848:4848" #admin console
+    environment:
+      # variables for glassfish to find db
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: specchio_db
+      DB_USER: specchio_user
+      DB_PASS: specchio_password
+    networks:
+      - specchio-network
+
+networks:
+  specchio-network:
+    driver: bridge
