@@ -1,7 +1,7 @@
 services:
   # Database
   db:
-    image: mysql:latest
+    image: specchio-db:0.1.0
     container_name: specchio-db
     restart: always
     environment:
@@ -14,17 +14,25 @@ services:
       - "3306:3306"
     volumes:
       # map local storage to sql container for data persistance
-      - ./mysql_storage:/var/lib/mysql:z
-      # init files for sql db should be mounted here to run them on first startup
-      - ./mysql:/docker-entrypoint-initdb.d:z
+      - ./data:/var/lib/mysql:z
     networks:
       - specchio-network
+
+    ###TRIAL: healthcheck - should ensure that DB is fully setup when webapp starts
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
 
   # Specchio Application
   webapp:
     image: specchio-webapp:0.1.2  # should move to :latest
-    depends_on:
-      - db
+    container_name: specchio-webapp
+    depends_on: #wait for heathcheck of db to be completed
+      db:
+        condition: service_healthy
     ports:
       - "8080:8080"
       - "4848:4848" #admin console
