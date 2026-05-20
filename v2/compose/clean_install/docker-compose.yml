@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # --- 1. The Database Container ---
+  database:
+    # Using an official, production-ready PostgreSQL base image
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: specchio_user
+      POSTGRES_PASSWORD: secure_db_password
+      POSTGRES_DB: specchio_prod_db
+    volumes:
+      # Automatically initializes the schema & applies upgrades sequentially on an empty database
+      - ./db/init-db:/docker-entrypoint-initdb.d:ro
+      # Persists structural user data safely on the host system drive
+      - specchio_db_storage:/var/lib/postgresql/data
+    networks:
+      - specchio-network
+
+  # --- 2. The GlassFish Application Server ---
+  webapp:
+    build: .
+    restart: always
+    depends_on:
+      - database
+    # Ports remain completely hidden from the host network for isolation
+    networks:
+      - specchio-network
+
+  # --- 3. The Reverse Proxy Shield ---
+  reverse-proxy:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"   # Local/Private Access (HTTP)
+      - "443:443" # Public Cloud Access (HTTPS)
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Volume mount to securely drop in external public domain certificates if needed
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - webapp
+    networks:
+      - specchio-network
+
+# Dedicated named storage volume for production records
+volumes:
+  specchio_db_storage:
+
+# Isolated bridge network to prevent container exposure outside of Nginx
+networks:
+  specchio-network:
+    driver: bridge
