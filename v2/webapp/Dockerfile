@@ -27,7 +27,12 @@ RUN asadmin start-domain && \
     asadmin stop-domain
 
 # 5. Move your latest webapp build into the autodeploy location
-# Note: Ensure 'latest-webapp.war' matches the real name of your artifact
+# 5. Download, extract, and copy your latest webapp build from Jenkins
+RUN wget --no-check-certificate https://jenkins.specchio.ch/job/SPECCHIO/lastBuild/artifact/src/webapp/build/distributions/specchio-webapp.zip \
+    && unzip specchio-webapp.zip \
+    && cp ./specchio-webapp/webapp-*.war $GLASSFISH_HOME/glassfish/domains/domain1/autodeploy/ \
+    && rm -rf specchio-webapp.zip specchio-webapp
+
 COPY ./latest-webapp.war $GLASSFISH_HOME/glassfish/domains/domain1/autodeploy/
 
 # 6. Expose the standard web port internally 
