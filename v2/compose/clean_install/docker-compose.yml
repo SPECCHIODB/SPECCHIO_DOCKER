@@ -44,9 +44,9 @@ services:
       # Volume mount to securely drop in external public domain certificates if needed
       ###- ./nginx/ssl:/etc/nginx/ssl:rw
       - ./nginx/ssl:/etc/nginx/ssl:rw,z #:z for Fedora/Redhat
-    # Automatically generates a local self-signed SSL certificate if one isn't present
+    # Automatically generates a local self-signed SSL certificate if one isn't present; is CA:TRUE! now 
     command: >
-      sh -c "mkdir -p /etc/nginx/ssl; if [ ! -f /etc/nginx/ssl/server.crt ]; then apk add --no-cache openssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/server.key -out /etc/nginx/ssl/server.crt -subj '/CN=localhost'; fi; nginx -g 'daemon off;'"
+      sh -c "mkdir -p /etc/nginx/ssl; if [ ! -f /etc/nginx/ssl/server.crt ]; then apk add --no-cache openssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/server.key -out /etc/nginx/ssl/server.crt -subj '/CN=localhost' -addext 'basicConstraints=critical,CA:TRUE'; fi; nginx -g 'daemon off;'"
     depends_on:
       - webapp
     networks:
