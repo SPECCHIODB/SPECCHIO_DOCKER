@@ -4,27 +4,30 @@ services:
   # --- 1. The Database Container ---
   database:
     # Using an official, production-ready PostgreSQL base image
-    image: postgres:15-alpine
+    image: mysql:8.0
     restart: always
     environment:
-      POSTGRES_USER: specchio_user
-      POSTGRES_PASSWORD: secure_db_password
-      POSTGRES_DB: specchio_prod_db
+      MYSQL_ROOT_PASSWORD: secure_root_password
+      MYSQL_DATABASE: specchio
     volumes:
       # Automatically initializes the schema & applies upgrades sequentially on an empty database
-      - ./db/init-db:/docker-entrypoint-initdb.d:ro
+      ###- ./db/init-db:/docker-entrypoint-initdb.d:ro
+      - ./db/init-db:/docker-entrypoint-initdb.d:ro,z #:z for Fedora/Redhat
       # Persists structural user data safely on the host system drive
-      - specchio_db_storage:/var/lib/postgresql/data
+      ###- ./db_storage:/var/lib/mysql
+      - ./db_storage:/var/lib/mysql:z #:z for Fedora/Redhat
     networks:
       - specchio-network
 
   # --- 2. The GlassFish Application Server ---
   webapp:
-    build: .
+    image: specchio-webapp:0.2.0 # Tells compose to use your exact built tag
     restart: always
     depends_on:
       - database
     # Ports remain completely hidden from the host network for isolation
+    ports:
+      - "127.0.0.1:4848:4848" # SECURE: Binds admin console ONLY to your local machine loopback
     networks:
       - specchio-network
 
@@ -36,17 +39,19 @@ services:
       - "80:80"   # Local/Private Access (HTTP)
       - "443:443" # Public Cloud Access (HTTPS)
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      ###- ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z #:z for Fedora/Redhat
       # Volume mount to securely drop in external public domain certificates if needed
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      ###- ./nginx/ssl:/etc/nginx/ssl:rw
+      - ./nginx/ssl:/etc/nginx/ssl:rw,z #:z for Fedora/Redhat
+    # Automatically generates a local self-signed SSL certificate if one isn't present
+    command: >
+      sh -c "mkdir -p /etc/nginx/ssl; if [ ! -f /etc/nginx/ssl/server.crt ]; then apk add --no-cache openssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/server.key -out /etc/nginx/ssl/server.crt -subj '/CN=localhost'; fi; nginx -g 'daemon off;'"
     depends_on:
       - webapp
     networks:
       - specchio-network
 
-# Dedicated named storage volume for production records
-volumes:
-  specchio_db_storage:
 
 # Isolated bridge network to prevent container exposure outside of Nginx
 networks:
