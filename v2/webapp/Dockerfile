@@ -42,14 +42,14 @@ RUN asadmin start-domain && \
     asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-connection-pool \
       --datasourceclassname com.mysql.jdbc.jdbc2.optional.MysqlDataSource \
       --restype javax.sql.DataSource \
-      --property user=root:password=\${MYSQL_ROOT_PASSWORD}:serverName=database:portNumber=3306:databaseName=\${MYSQL_DATABASE}:useSSL=false \
+      --property user=\${DB_USER}:password=\${DB_PASSWORD}:serverName=database:portNumber=3306:databaseName=\${DB_NAME}:useSSL=false \
       specchio_pool && \
     # Create JNDI Resource
     asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-resource --connectionpoolid specchio_pool jdbc/specchio_jndi && \
     # Create Security Realm
     asadmin --user admin --passwordfile /tmp/admin_auth.txt create-auth-realm \
       --classname com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm \
-      --property jaas-context=jdbcRealm:password-column=password:datasource-jndi=jdbc/specchio_jndi:group-table=user_groups:user-table=users:group-name-column=group_name:digestrealm-password-enc-algorithm=SHA-256:group-table-user-name-column=username:db-password=\${MYSQL_ROOT_PASSWORD}:digest-algorithm=SHA-256:db-user=root:user-name-column=username \
+      --property jaas-context=jdbcRealm:password-column=password:datasource-jndi=jdbc/specchio_jndi:group-table=user_groups:user-table=users:group-name-column=group_name:digestrealm-password-enc-algorithm=SHA-256:group-table-user-name-column=username:db-password=\${DB_PASSWORD}:digest-algorithm=SHA-256:db-user=\${DB_USER}:user-name-column=username \
       specchio_realm && \
     # ----------------------------------------------------
     # Clean up the admin auth file and stop domain
@@ -64,5 +64,8 @@ RUN wget --no-check-certificate https://jenkins.specchio.ch/job/SPECCHIO/lastBui
 
 EXPOSE 8080
 
-# 7. Start the server in the foreground
-CMD ["asadmin", "start-domain", "--verbose"]
+# 7. Copy the bootstrap script, make it executable, and set it as the entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

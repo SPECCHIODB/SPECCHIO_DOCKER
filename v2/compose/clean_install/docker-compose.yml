@@ -18,19 +18,26 @@ services:
       - ./db_storage:/var/lib/mysql:z #:z for Fedora/Redhat
     networks:
       - specchio-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecure_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   # --- 2. The GlassFish Application Server ---
   webapp:
     image: specchio-webapp:0.2.0 # Tells compose to use your exact built tag
     restart: always
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     # Ports remain completely hidden from the host network for isolation
     ports:
       - "127.0.0.1:4848:4848" # SECURE: Binds admin console ONLY to your local machine loopback
     environment:
-      - MYSQL_ROOT_PASSWORD=secure_root_password
-      - MYSQL_DATABASE=specchio
+      - DB_USER=sdb_admin
+      - DB_PASSWORD=sdb_admin_password
+      - DB_NAME=specchio
     networks:
       - specchio-network
 
