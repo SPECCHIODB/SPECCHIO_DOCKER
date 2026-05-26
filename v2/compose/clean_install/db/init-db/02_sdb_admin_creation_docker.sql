@@ -9,18 +9,18 @@
 
 
 -- Set the admin user name and password here - make sure the username and password is the same on each line!
-CREATE USER 'sdb_admin'@'localhost' IDENTIFIED BY 'sdb_admin_password';
+CREATE USER 'sdb_admin'@'%' IDENTIFIED BY 'sdb_admin_password';
 INSERT INTO `specchio`.`specchio_user` (`user`, `first_name`, `last_name`, `email`, `admin`, `password`)
 	VALUES ('sdb_admin', 'SPECCHIO', 'Administrator', '', 1, MD5('sdb_admin_password'));
 -- INSERT INTO `specchio`.`specchio_user_group` VALUES('sdb_admin', 'admin');
 
 
 -- Grant administrator privileges
-GRANT SELECT, DELETE, INSERT, UPDATE, ALTER, DROP, CREATE, CREATE VIEW, GRANT OPTION, TRIGGER, REFERENCES ON `specchio`.* TO 'sdb_admin'@'localhost';
-GRANT SELECT, DELETE, INSERT, UPDATE, DROP, CREATE TEMPORARY TABLES, GRANT OPTION ON `specchio_temp`.* TO 'sdb_admin'@'localhost';
-GRANT SUPER, CREATE USER ON *.* TO 'sdb_admin'@'localhost';
-GRANT INSERT ON `mysql`.`user` TO 'sdb_admin'@'localhost';
+GRANT SELECT, DELETE, INSERT, UPDATE, ALTER, DROP, CREATE, CREATE VIEW, GRANT OPTION, TRIGGER, REFERENCES ON `specchio`.* TO 'sdb_admin'@'%';
+GRANT SELECT, DELETE, INSERT, UPDATE, DROP, CREATE TEMPORARY TABLES, GRANT OPTION ON `specchio_temp`.* TO 'sdb_admin'@'%';
+GRANT SUPER, CREATE USER ON *.* TO 'sdb_admin'@'%';
+GRANT INSERT ON `mysql`.`user` TO 'sdb_admin'@'%';
 UPDATE `mysql`.`user`
 	SET `Reload_priv`='Y', `Process_priv`='Y', `Update_priv`='Y', `Delete_priv`='Y', `Select_priv`='Y'
-	WHERE `user`='sdb_admin' AND `host`='localhost';
+	WHERE `user`='sdb_admin' AND `host`='%';
 FLUSH PRIVILEGES;
