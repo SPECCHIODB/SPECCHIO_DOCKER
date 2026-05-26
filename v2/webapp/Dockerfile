@@ -42,7 +42,7 @@ RUN asadmin start-domain && \
     asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-connection-pool \
       --datasourceclassname com.mysql.jdbc.jdbc2.optional.MysqlDataSource \
       --restype javax.sql.DataSource \
-      --property user=root:password=\${MYSQL_ROOT_PASSWORD}:serverName=database:portNumber=3306:databaseName=\${MYSQL_DATABASE}:Url="jdbc\:mysql\://database\:3306/\${MYSQL_DATABASE}" \
+      --property user=root:password=\${MYSQL_ROOT_PASSWORD}:serverName=database:portNumber=3306:databaseName=\${MYSQL_DATABASE}:useSSL=false \
       specchio_pool && \
     # Create JNDI Resource
     asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-resource --connectionpoolid specchio_pool jdbc/specchio_jndi && \
