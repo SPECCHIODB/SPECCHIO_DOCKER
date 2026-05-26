@@ -27,31 +27,33 @@ RUN asadmin start-domain && \
     until asadmin list-domains | grep -q "domain1 running"; do echo "Waiting..." && sleep 2; done && \
     # Proxy Trust settings
     asadmin create-jvm-options "-Dglassfish.grizzly.authPassthroughEnabled=true" && \
-    # Set Admin Password
+    # Set Admin Password from blank to 'admin'
     echo "AS_ADMIN_PASSWORD=\nAS_ADMIN_NEWPASSWORD=admin" > /tmp/pwd.txt && \
     asadmin --user admin --passwordfile /tmp/pwd.txt change-admin-password && \
     rm /tmp/pwd.txt && \
+    # Create a reusable authentication file for subsequent commands
+    echo "AS_ADMIN_PASSWORD=admin" > /tmp/admin_auth.txt && \
     # Enable Secure Admin
-    echo "AS_ADMIN_PASSWORD=admin" > /tmp/auth.txt && \
-    asadmin --user admin --passwordfile /tmp/auth.txt enable-secure-admin && \
-    rm /tmp/auth.txt && \
+    asadmin --user admin --passwordfile /tmp/admin_auth.txt enable-secure-admin && \
     # ----------------------------------------------------
-    # NEW: REPLACES JINJA2 / DOMAIN.XML CONFIGURATIONS
+    # CONFIGURATIONS (Updated host to 'database' and variables to match MySQL defaults)
     # ----------------------------------------------------
-    # Create MySQL Connection Pool (Note the database host is 'db')
-    asadmin create-jdbc-connection-pool \
+    # Create MySQL Connection Pool
+    asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-connection-pool \
       --datasourceclassname com.mysql.jdbc.jdbc2.optional.MysqlDataSource \
       --restype javax.sql.DataSource \
-      --property user=\${DB_USER}:password=\${DB_PASSWORD}:serverName=db:portNumber=3306:databaseName=\${DB_NAME}:Url="jdbc\:mysql\://db\:3306/\${DB_NAME}" \
+      --property user=root:password=\${MYSQL_ROOT_PASSWORD}:serverName=database:portNumber=3306:databaseName=\${MYSQL_DATABASE}:Url="jdbc\:mysql\://database\:3306/\${MYSQL_DATABASE}" \
       specchio_pool && \
     # Create JNDI Resource
-    asadmin create-jdbc-resource --poolid specchio_pool jdbc/specchio_jndi && \
+    asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-resource --connectionpoolid specchio_pool jdbc/specchio_jndi && \
     # Create Security Realm
-    asadmin create-auth-realm \
+    asadmin --user admin --passwordfile /tmp/admin_auth.txt create-auth-realm \
       --classname com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm \
-      --property jaas-context=jdbcRealm:password-column=password:datasource-jndi=jdbc/specchio_jndi:group-table=user_groups:user-table=users:group-name-column=group_name:digestrealm-password-enc-algorithm=SHA-256:group-table-user-name-column=username:db-password=\${DB_PASSWORD}:digest-algorithm=SHA-256:db-user=\${DB_USER}:user-name-column=username \
+      --property jaas-context=jdbcRealm:password-column=password:datasource-jndi=jdbc/specchio_jndi:group-table=user_groups:user-table=users:group-name-column=group_name:digestrealm-password-enc-algorithm=SHA-256:group-table-user-name-column=username:db-password=\${MYSQL_ROOT_PASSWORD}:digest-algorithm=SHA-256:db-user=root:user-name-column=username \
       specchio_realm && \
     # ----------------------------------------------------
+    # Clean up the admin auth file and stop domain
+    rm /tmp/admin_auth.txt && \
     asadmin stop-domain
 
 # 6. Download and deploy your latest webapp build from Jenkins
