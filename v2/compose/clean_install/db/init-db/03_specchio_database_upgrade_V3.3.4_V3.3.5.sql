@@ -1,5 +1,6 @@
 
 -- linking standard deviations to spectra: intermediate 
+-- 26.05.2026, lschweiss : added some "LIMIT 1" catches to avoid errors when booting the docker version
 
 INSERT INTO `specchio`.`attribute`(`name`, `description`, `category_id`, `default_storage_field`, `cardinality`) VALUES ('Standard Deviation Data Link', 'Points to a spectrum representing a standard deviation.', (select category_id from `specchio`.`category` where name = 'Data Links'), 'spectrum_id', NULL);
 

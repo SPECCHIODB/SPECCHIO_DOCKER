@@ -6,6 +6,7 @@
 -- 02.-0.2010, ahueni : added GRANT SUPER ON *.* TO sdb_admin;, TRIGGER for MySQL 5.1.6
 -- 01.03.2013, nsheppard : updated for SPECCHIO V3
 -- 26.01.2015, ahueni : removed insert of sdb_admin into specchio_user_group as already contained in DB dump
+-- 26.05.2026, lschweiss : adapted for the use with dockerized versioN: stripped all localhost namings as webapp is not localhost for db container
 
 
 -- Set the admin user name and password here - make sure the username and password is the same on each line!

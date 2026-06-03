@@ -44,13 +44,14 @@ RUN asadmin start-domain && \
       --restype javax.sql.DataSource \
       --property user=\${DB_USER}:password=\${DB_PASSWORD}:serverName=database:portNumber=3306:databaseName=\${DB_NAME}:useSSL=false \
       specchio_pool && \
-    # Create JNDI Resource
-    asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-resource --connectionpoolid specchio_pool jdbc/specchio_jndi && \
-    # Create Security Realm
+    # Create JNDI Resource (jdbc/specchio)
+    asadmin --user admin --passwordfile /tmp/admin_auth.txt create-jdbc-resource --connectionpoolid specchio_pool jdbc/specchio && \
+    # Create Security Realm (Aligned to custom columns and tables on a running system)
     asadmin --user admin --passwordfile /tmp/admin_auth.txt create-auth-realm \
       --classname com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm \
-      --property jaas-context=jdbcRealm:password-column=password:datasource-jndi=jdbc/specchio_jndi:group-table=user_groups:user-table=users:group-name-column=group_name:digestrealm-password-enc-algorithm=SHA-256:group-table-user-name-column=username:db-password=\${DB_PASSWORD}:digest-algorithm=SHA-256:db-user=\${DB_USER}:user-name-column=username \
+      --property jaas-context=jdbcRealm:datasource-jndi=jdbc/specchio:user-table=specchio.specchio_user:user-name-column=user:password-column=password:group-table=specchio.specchio_user_group:group-table-user-name-column=user:group-name-column=group_name:digestrealm-password-enc-algorithm=MD5:digest-algorithm=MD5:db-user=\${DB_USER}:db-password=\${DB_PASSWORD} \
       specchio_realm && \
+    asadmin --user admin --passwordfile /tmp/admin_auth.txt set server.security-service.default-realm=specchio_realm && \
     # ----------------------------------------------------
     # Clean up the admin auth file and stop domain
     rm /tmp/admin_auth.txt && \

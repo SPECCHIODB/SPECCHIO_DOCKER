@@ -26,7 +26,7 @@ services:
 
   # --- 2. The GlassFish Application Server ---
   webapp:
-    image: specchio-webapp:0.2.0 # Tells compose to use your exact built tag
+    image: specchio-webapp:0.2.1 # Tells compose to use your exact built tag
     restart: always
     depends_on:
       database:
