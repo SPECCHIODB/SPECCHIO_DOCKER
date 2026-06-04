@@ -1,21 +1,21 @@
 version: '3.8'
 
 services:
-  # --- 1. The Database Container ---
+  # --- Database Container ---
   database:
-    # Using an official, production-ready PostgreSQL base image
     image: mysql:5.7
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: secure_root_password
       MYSQL_DATABASE: specchio
     volumes:
-      # Automatically initializes the schema & applies upgrades sequentially on an empty database
-      ###- ./db/init-db:/docker-entrypoint-initdb.d:ro
-      - ./db/init-db:/docker-entrypoint-initdb.d:ro,z #:z for Fedora/Redhat
-      # Persists structural user data safely on the host system drive
-      ###- ./db_storage:/var/lib/mysql
-      - ./db_storage:/var/lib/mysql:z #:z for Fedora/Redhat
+      # Init folder, read at first startup of db
+      - ./db/init-db:/docker-entrypoint-initdb.d:ro
+      ###- ./db/init-db:/docker-entrypoint-initdb.d:ro,z #:z for Fedora/Redhat
+      
+      # Persistent DB storage on the machine
+      - ./db_storage:/var/lib/mysql
+      ###- ./db_storage:/var/lib/mysql:z #:z for Fedora/Redhat
     networks:
       - specchio-network
     healthcheck:
@@ -24,16 +24,16 @@ services:
       timeout: 5s
       retries: 10
 
-  # --- 2. The GlassFish Application Server ---
+  # --- GlassFish Application Server ---
   webapp:
-    image: specchio-webapp:0.2.1 # Tells compose to use your exact built tag
+    image: specchio-webapp:0.2.1 #could be changed to :latest when tagged in dockerhub
     restart: always
     depends_on:
       database:
         condition: service_healthy
-    # Ports remain completely hidden from the host network for isolation
+
     ports:
-      - "127.0.0.1:4848:4848" # SECURE: Binds admin console ONLY to your local machine loopback
+      - "127.0.0.1:4848:4848" # expose admin console to local loopback only
     environment:
       - DB_USER=sdb_admin
       - DB_PASSWORD=sdb_admin_password
@@ -41,20 +41,22 @@ services:
     networks:
       - specchio-network
 
-  # --- 3. The Reverse Proxy Shield ---
+  # --- Reverse Proxy Shield ---
   reverse-proxy:
     image: nginx:alpine
     restart: always
     ports:
-      - "80:80"   # Local/Private Access (HTTP)
-      - "443:443" # Public Cloud Access (HTTPS)
+      - "80:80"   # http
+      - "443:443" # https
+
+    ###SELECT YOUR PROPER VERSION
     volumes:
-      ###- ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z #:z for Fedora/Redhat
-      # Volume mount to securely drop in external public domain certificates if needed
-      ###- ./nginx/ssl:/etc/nginx/ssl:rw
-      - ./nginx/ssl:/etc/nginx/ssl:rw,z #:z for Fedora/Redhat
-    # Automatically generates a local self-signed SSL certificate if one isn't present; is CA:TRUE! now 
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro #config file
+      ###- ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z #:z for Fedora/Redhat
+      - ./nginx/ssl:/etc/nginx/ssl:rw #SSL cert folder
+      ###- ./nginx/ssl:/etc/nginx/ssl:rw,z #:z for Fedora/Redhat
+
+    # Automatically generate a local self signed cert
     command: >
       sh -c "mkdir -p /etc/nginx/ssl; if [ ! -f /etc/nginx/ssl/server.crt ]; then apk add --no-cache openssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/server.key -out /etc/nginx/ssl/server.crt -subj '/CN=localhost' -addext 'basicConstraints=critical,CA:TRUE'; fi; nginx -g 'daemon off;'"
     depends_on:
@@ -63,7 +65,7 @@ services:
       - specchio-network
 
 
-# Isolated bridge network to prevent container exposure outside of Nginx
+# --- Isolated Brdge Network to connect the three containers ---
 networks:
   specchio-network:
     driver: bridge

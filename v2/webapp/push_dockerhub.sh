@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Script to push a new container build to Dockerhub 
+# Adapt tags accordingly
 VERSION="0.2.1"
 REPO="leschweuzh/specchio-webapp"
 

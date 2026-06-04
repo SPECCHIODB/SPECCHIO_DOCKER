@@ -5,6 +5,8 @@ set -e
 
 DOMAIN_XML="$GLASSFISH_HOME/glassfish/domains/domain1/config/domain.xml"
 
+
+# Add variables that can be configured at container startup
 echo "Inserting live environment variables into domain.xml..."
 sed -i "s/\${DB_USER}/$DB_USER/g" "$DOMAIN_XML"
 sed -i "s/\${DB_PASSWORD}/$DB_PASSWORD/g" "$DOMAIN_XML"
