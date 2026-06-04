@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="0.2"
+VERSION="0.2.1"
 REPO="leschweuzh/specchio-webapp"
 
 echo "Building version $VERSION..."
