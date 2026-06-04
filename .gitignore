@@ -3,3 +3,5 @@ data/
 ZIPs/
 v2/compose/clean_install/db_storage/
 v2/compose/clean_install/nginx/ssl/
+*.crt
+*.key
