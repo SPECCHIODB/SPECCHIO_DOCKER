@@ -9,19 +9,23 @@
 -- 26.05.2026, lschweiss : adapted for the use with dockerized versioN: stripped all localhost namings as webapp is not localhost for db container
 
 
--- Set the admin user name and password here - make sure the username and password is the same on each line!
-CREATE USER 'sdb_admin'@'%' IDENTIFIED BY 'sdb_admin_password';
-INSERT INTO `specchio`.`specchio_user` (`user`, `first_name`, `last_name`, `email`, `admin`, `password`)
-	VALUES ('sdb_admin', 'SPECCHIO', 'Administrator', '', 1, MD5('sdb_admin_password'));
--- INSERT INTO `specchio`.`specchio_user_group` VALUES('sdb_admin', 'admin');
+-- 1. Create the user safely (if they don't exist yet)
+CREATE USER IF NOT EXISTS 'sdb_admin'@'%' IDENTIFIED BY 'sdb_admin_password';
 
+-- 2. Insert into app table safely (skips if dump already added it, inserts if fresh install)
+INSERT IGNORE INTO `specchio`.`specchio_user` (`user`, `first_name`, `last_name`, `email`, `admin`, `password`)
+    VALUES ('sdb_admin', 'SPECCHIO', 'Administrator', '', 1, MD5('sdb_admin_password'));
 
--- Grant administrator privileges
+-- 3. Grant administrator privileges (Updates or applies rights regardless of history)
 GRANT SELECT, DELETE, INSERT, UPDATE, ALTER, DROP, CREATE, CREATE VIEW, GRANT OPTION, TRIGGER, REFERENCES ON `specchio`.* TO 'sdb_admin'@'%';
 GRANT SELECT, DELETE, INSERT, UPDATE, DROP, CREATE TEMPORARY TABLES, GRANT OPTION ON `specchio_temp`.* TO 'sdb_admin'@'%';
 GRANT SUPER, CREATE USER ON *.* TO 'sdb_admin'@'%';
 GRANT INSERT ON `mysql`.`user` TO 'sdb_admin'@'%';
+
+-- 4. Direct system table updates to ensure maximum access privileges across network
 UPDATE `mysql`.`user`
-	SET `Reload_priv`='Y', `Process_priv`='Y', `Update_priv`='Y', `Delete_priv`='Y', `Select_priv`='Y'
-	WHERE `user`='sdb_admin' AND `host`='%';
+    SET `Reload_priv`='Y', `Process_priv`='Y', `Update_priv`='Y', `Delete_priv`='Y', `Select_priv`='Y'
+    WHERE `user`='sdb_admin' AND `host`='%';
+
+-- 5. Reload memory cache to make everything active instantly
 FLUSH PRIVILEGES;
