@@ -84,6 +84,72 @@ The server application management interface is bound strictly to the loopback ad
 
 ---
 
+## Data Migration
+
+Up to now, data migration was carried out by manually creating an SQL dump from a running system and bringing this dump into the new system. 
+
+This is also the case for this dockerized solution and thus also allows a migration from an old VM/bare metal system to a dockerized solution.
+
+The following step-by-step guides explain 
+1.  how to get a dump out of the running DB container and 
+2.  how to bring an existing SQL dump into a container
+
+
+### Create SQL-Dump from container:
+
+1. Ensure your Dockerized system is running and your location is where the Docker Compose file is located
+
+2. Execute the following command (adapt params if meeded)
+
+```bash
+docker compose exec -T database mysqldump -u root -psecure_root_password specchio > 00_export_dump.sql
+```
+> this command works for both: Windows (Powershell 5.1 or newer) and Linux/Mac systems!
+
+
+Parameters:
+- `database`: Database Container Name (as given in Docker Compose)
+- `u root -psecure_root_password`: DB user and matching PW (as given in Docker Compose)
+- `specchio`: DB name 
+- `export_dump.sql`: Path (or Name) of the created sql dump
+
+
+### Import a previously saved SQL-Dump into a dockerized system:
+
+Proceed exactly as described in the deployment instructions.
+The only change you need is in the init-db files:
+
+instead of 
+
+```
+└── init-db
+    ├── 01_SPECCHIO_V3.3.4.sql
+    ├── 02_sdb_admin_creation_docker.sql
+    ├── 03_specchio_database_upgrade_V3.3.4_V3.3.5.sql
+    ├── 04_specchio_database_upgrade_V3.3.5_V3.3.6.sql
+    └── 05_specchio_database_upgrade_V3.3.6_V3.3.7.sql
+
+```
+
+you should only use these files:
+
+```
+└── init-db
+    ├── 00_export_dump.sql
+    └── 02_sdb_admin_creation_docker.sql
+
+```
+
+> *The admin creation script is necessary to ensure sdb_admin permissions are correct*
+
+
+> Ensure that you adapt the files in init-db **prior to the first startup** and that your db_strorage folder is empty (otherwise the scripts will not be run!)
+
+
+> Your dump must have a naming that is alphabetically smaller naming than the sdb script as the naming defines the execution odrer!
+
+---
+
 ## Repository Architecture
 
 ```
