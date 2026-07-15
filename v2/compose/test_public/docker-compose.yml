@@ -11,11 +11,10 @@ services:
     volumes:
       # Init folder, read at first startup of db
       - ./db/init-db:/docker-entrypoint-initdb.d:ro
-      ###- ./db/init-db:/docker-entrypoint-initdb.d:ro,z #:z for Fedora/Redhat
-      
+      ### - ./db/init-db:/docker-entrypoint-initdb.d:ro,z #:z for Fedora/Redhat
       # Persistent DB storage on the machine
       - ./db_storage:/var/lib/mysql
-      ###- ./db_storage:/var/lib/mysql:z #:z for Fedora/Redhat
+      ### - ./db_storage:/var/lib/mysql:z #:z for Fedora/Redhat
     networks:
       - specchio-network
     healthcheck:
@@ -61,8 +60,6 @@ services:
       - webapp
     networks:
       - specchio-network
-
-
 
 
 # --- Isolated Brdge Network to connect the three containers ---
