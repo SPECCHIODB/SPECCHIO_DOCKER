@@ -2,6 +2,8 @@ mysql_files/
 data/
 src/docker_deployment/clean_install/db_storage/*
 !src/docker_deployment/clean_install/db_storage/.gitkeep
+src/docker_deployment/db_migration/db_storage/*
+!src/docker_deployment/db_migration/db_storage/.gitkeep
 v2/compose/clean_install/nginx/ssl/*
 *.crt
 *.key

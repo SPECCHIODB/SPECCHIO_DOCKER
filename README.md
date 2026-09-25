@@ -145,7 +145,9 @@ you should only use these files:
 
 ```
 
-> *The admin creation script is necessary to ensure sdb_admin permissions are correct*
+These two variants are provided ready-to-use by choosing the proper variant (clean_install or db_migration)
+
+> *The admin creation script is necessary to ensure sdb_admin permissions are correct; ensure to change your PWD here if you run a public instance*
 
 
 > Ensure that you adapt the files in init-db **prior to the first startup** and that your db_strorage folder is empty (otherwise the scripts will not be run!)
