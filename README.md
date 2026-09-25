@@ -7,6 +7,11 @@ While optimized for local development, this configuration can be adapted for pro
 ---
 
 ## Deployment Instructions
+> In the `src/docker_deployment` folder two file folders can be found. The difference lies in the db initialisation files provided. Select the one that fits your needs:
+>
+> `clean_install`: to be used if a blank database should be built; see below steps for the process
+>
+> `db_migration`: to be used if an existant db should be moved to the dockerized system. Follow the below steps as well; see the chapter "Data Migration" for details on your usecase.
 
 ### 1. Prerequisites
 
