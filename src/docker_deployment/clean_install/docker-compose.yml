@@ -35,8 +35,8 @@ services:
     ports:
       - "127.0.0.1:4848:4848" # expose admin console to local loopback only
     environment:
-      - DB_USER=sdb_admin
-      - DB_PASSWORD=sdb_admin_password
+      - DB_USER=sdb_admin #CHANGE?
+      - DB_PASSWORD=sdb_admin_password #CHANGE?
       - DB_NAME=specchio
     networks:
       - specchio-network

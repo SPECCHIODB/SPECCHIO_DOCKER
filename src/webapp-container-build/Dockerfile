@@ -26,9 +26,9 @@ RUN asadmin start-domain && \
     until asadmin list-domains | grep -q "domain1 running"; do echo "Waiting..." && sleep 2; done && \
     # Proxy Trust settings
     asadmin create-jvm-options "-Dglassfish.grizzly.authPassthroughEnabled=true" && \
-    # Set Admin Password from blank to 'admin'
-    echo "AS_ADMIN_PASSWORD=\nAS_ADMIN_NEWPASSWORD=admin" > /tmp/pwd.txt && \
-    asadmin --user admin --passwordfile /tmp/pwd.txt change-admin-password && \
+    # Set Admin Password from blank to 'admin' #CHANGE?
+    echo "AS_ADMIN_PASSWORD=\nAS_ADMIN_NEWPASSWORD=admin" > /tmp/pwd.txt && \ 
+    asadmin --user admin --passwordfile /tmp/pwd.txt change-admin-password && \ 
     rm /tmp/pwd.txt && \
     # Create a reusable authentication file for subsequent commands
     echo "AS_ADMIN_PASSWORD=admin" > /tmp/admin_auth.txt && \

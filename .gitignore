@@ -1,7 +1,8 @@
 mysql_files/
 data/
-ZIPs/
-v2/compose/clean_install/db_storage/
-v2/compose/clean_install/nginx/ssl/
+src/docker_deployment/clean_install/db_storage/*
+!src/docker_deployment/clean_install/db_storage/.gitkeep
+v2/compose/clean_install/nginx/ssl/*
 *.crt
 *.key
+*.war

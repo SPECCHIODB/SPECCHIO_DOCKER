@@ -9,10 +9,11 @@
 -- 26.05.2026, lschweiss : adapted for the use with dockerized versioN: stripped all localhost namings as webapp is not localhost for db container
 
 
--- 1. Create the user safely (if they don't exist yet)
+-- 1. Create the user if nonexistent
+-- CHANGE PWD ON PUBLIC INSTANCES!
 CREATE USER IF NOT EXISTS 'sdb_admin'@'%' IDENTIFIED BY 'sdb_admin_password';
 
--- 2. Insert into app table safely (skips if dump already added it, inserts if fresh install)
+-- 2. Insert into app table (skipped if dump already has it, inserts if fresh install)
 INSERT IGNORE INTO `specchio`.`specchio_user` (`user`, `first_name`, `last_name`, `email`, `admin`, `password`)
     VALUES ('sdb_admin', 'SPECCHIO', 'Administrator', '', 1, MD5('sdb_admin_password'));
 
